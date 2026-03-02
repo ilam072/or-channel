@@ -11,31 +11,40 @@ package or
 
 // Or combines multiple done channels into a single channel.
 // The returned channel will be closed as soon as any of the input channels close.
+// Nil channels are ignored.
 func Or(channels ...<-chan interface{}) <-chan interface{} {
-	switch len(channels) {
+	// Фильтрация nil-каналов
+	nonNil := make([]<-chan interface{}, 0, len(channels))
+	for _, ch := range channels {
+		if ch != nil {
+			nonNil = append(nonNil, ch)
+		}
+	}
+
+	switch len(nonNil) {
 	case 0:
 		ch := make(chan interface{})
 		close(ch)
 		return ch
 	case 1:
-		return channels[0]
+		return nonNil[0]
 	}
 
 	orDone := make(chan interface{})
 	go func() {
 		defer close(orDone)
 
-		switch len(channels) {
+		switch len(nonNil) {
 		case 2:
 			select {
-			case <-channels[0]:
-			case <-channels[1]:
+			case <-nonNil[0]:
+			case <-nonNil[1]:
 			}
 		default:
-			mid := len(channels) / 2
+			mid := len(nonNil) / 2
 			select {
-			case <-Or(channels[:mid]...):
-			case <-Or(channels[mid:]...):
+			case <-Or(nonNil[:mid]...):
+			case <-Or(nonNil[mid:]...):
 			}
 		}
 	}()

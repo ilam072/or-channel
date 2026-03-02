@@ -21,6 +21,8 @@ func main() {
 		sig(2*time.Second),
 		sig(1*time.Second),
 		sig(3*time.Second),
+		nil,
+		nil,
 	)
 	fmt.Println("done after", time.Since(start))
 }

@@ -47,3 +47,17 @@ func TestOrNoChannels(t *testing.T) {
 		t.Error("Or did not close the empty channel list")
 	}
 }
+
+func TestOrWithNilChannels(t *testing.T) {
+	c := make(chan interface{})
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		close(c)
+	}()
+
+	select {
+	case <-Or(nil, c, nil):
+	case <-time.After(time.Second):
+		t.Error("Or did not handle nil channels correctly")
+	}
+}
